@@ -1,0 +1,71 @@
+<style>
+    #map_canvas {
+        width: 90%;
+        margin: 30px 30px 30px 100px;
+        height: 430px;
+    }
+</style>
+<h1 style="margin:80px;">Присуство на CO во Скопје</h1>
+<div>
+    <div id="map_canvas"></div>
+</div>
+<script>
+    var get_json;
+    $(document).ready(function () {
+
+        var $messurments = Array();
+        $.ajax({
+            async: false,
+            url: "../measurements.json",
+            success: function (result) {
+                get_json = result;
+            }
+        });
+        // map center
+        var myLatlng = new google.maps.LatLng(41.9990584, 21.4762621);
+        // map options,
+        var myOptions = {
+            zoom: 12,
+            center: myLatlng
+        };
+        // standard map
+        map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+        // heatmap layer
+        var heatmap = new HeatmapOverlay(map, {
+            // radius should be small ONLY if scaleRadius is true (or small radius is intended)
+            "radius": 0.023,
+            "maxOpacity": 0.6,
+            "minOpacity": 0.02,
+            // scales the radius based on map zoom
+            "scaleRadius": true,
+            // if set to false the heatmap uses the global maximum for colorization
+            // if activated: uses the data maximum within the current map boundaries 
+            //   (there will always be a red spot with useLocalExtremas true)
+            "useLocalExtrema": false,
+            // which field name in your data represents the latitude - default "lat"
+            latField: 'lat',
+            // which field name in your data represents the longitude - default "lng"
+            lngField: 'lng',
+            // which field name in your data represents the data value - default "value"
+            valueField: 'count'
+        });
+        $messurments['max'] = Array();
+        $messurments['min'] = Array();
+        $max = Array();
+        $max['max'] = 0.99;
+        $min = Array();
+        $min['min'] = 0.2;
+        $messurments['max'].push($max);
+        $messurments['min'].push($min);
+        $messurments['data'] = Array();
+        $.each(get_json, function (key, val) {
+            data_push = Array();
+            data_push['lat'] = val['location']['latitude'];
+            data_push['lng'] = val['location']['longitude'];
+            data_push['count'] = val['value'];
+            $messurments['data'].push(data_push);
+        });
+        console.log($messurments);
+        heatmap.setData($messurments);
+    });
+</script>
